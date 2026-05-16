@@ -25,13 +25,22 @@ public:
 
     // getters / setters
     const string &getName() const { return name; }
-    void setName(const string &n) { name = n; }
+    void setName(const string &n) {
+        if (n.empty()) throw invalid_argument("Name cannot be empty");
+        name = n;
+    }
     const string &getDescription() const { return description; }
-    void setDescription(const string &d) { description = d; }
+    void setDescription(const string &d) {
+        if (d.empty()) throw invalid_argument("Description cannot be empty");
+        description = d;
+    }
     int getPriority() const { return priority; }
     void setPriorityManual(int p) { priority = p; }
     int getStatus() const { return status; }
-    void setStatus(int s) { status = s; }
+    void setStatus(int s) { 
+        if (s < NotStarted || s > Completed) throw invalid_argument("Invalid status value");
+        status = s; 
+    }
     time_t getDueDate() const { return dueDate; }
     void setDueDate(time_t t) { dueDate = t; }
 
