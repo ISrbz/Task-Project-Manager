@@ -72,7 +72,7 @@ public:
         else if (days <= 7) priority += 1; // due this week
     }
 
-    string getDetails() const {
+    string printDetails() const {
         ostringstream out;
         out << "Name: " << name << "\n";
         out << "Description: " << description << "\n";
@@ -93,6 +93,8 @@ public:
         }
         return out.str();
     }
+
+    virtual string getDetails() const = 0;
 };
 
 class Project;
@@ -110,6 +112,13 @@ public:
         priority = p;
         dueDatePriority();
         if (priority < 0) priority = 0;
+    }
+
+    string getDetails() const {
+        ostringstream out;
+        out << "Type: Task\n";
+        out << this->printDetails();
+        return out.str();
     }
 };
 
@@ -155,6 +164,13 @@ public:
         if (allCompleted) status = Completed;
         else if (anyStarted) status = InProgress;
         else status = NotStarted;
+    }
+
+    string getDetails() const {
+        ostringstream out;
+        out << "Type: Project\n";
+        out << this->printDetails();
+        return out.str();
     }
 };
 
@@ -230,6 +246,7 @@ void printMenu() {
     cout << "6. Sort\n";
     cout << "7. Show all (timeline)\n";
     cout << "8. Show details by index\n";
+    cout << "9. Change task status\n";
     cout << "q. Quit\n";
     cout << "Choice: ";
 }
@@ -419,6 +436,44 @@ int main(){
                     continue;
                 }
                 cout << "----\n" << item->getDetails();
+            }
+            else if (choice == "9") {
+                // list tasks from timeline with compact indices
+                vector<size_t> taskTimelineIndices;
+                for (size_t i = 0; i < timeline.size(); ++i) {
+                    ToDoItem *it = timeline.getItem(i);
+                    if (dynamic_cast<Task*>(it) != nullptr) {
+                        taskTimelineIndices.push_back(i);
+                    }
+                }
+                if (taskTimelineIndices.empty()) {
+                    cout << "No tasks on the timeline.\n";
+                    continue;
+                }
+
+                cout << "Tasks on timeline:\n";
+                for (size_t idx = 0; idx < taskTimelineIndices.size(); ++idx) {
+                    ToDoItem *it = timeline.getItem(taskTimelineIndices[idx]);
+                    cout << "[" << idx << "] " << it->getName() << " (status=" << statusToString(it->getStatus()) << ")\n";
+                }
+
+                size_t pick = static_cast<size_t>(readInt("Choose task number: "));
+                if (pick >= taskTimelineIndices.size()) {
+                    cout << "Invalid choice.\n";
+                    continue;
+                }
+
+                ToDoItem *chosen = timeline.getItem(taskTimelineIndices[pick]);
+                Task *task = dynamic_cast<Task*>(chosen);
+                if (!task) {
+                    cout << "Selected item is not a task.\n";
+                    continue;
+                }
+
+                int newStatus = readInt("New status (0=NotStarted,1=InProgress,2=Completed): ");
+                task->setStatus(newStatus);
+                if (task->getProject() != nullptr) task->getProject()->updateStatusFromTasks();
+                cout << "Task status updated.\n";
             }
             else {
                 cout << "Unknown choice.\n";
