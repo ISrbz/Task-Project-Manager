@@ -11,8 +11,19 @@
 #include "Timeline.h"
 
 using namespace std;
+time_t makeDueDateFromDaysHours(int daysFromNow, int hourOfDay) {
+    time_t now = time(nullptr);
+    std::tm tm = *std::localtime(&now);
+    tm.tm_mday += daysFromNow; // advance days
+    tm.tm_hour = hourOfDay;    // set clock hour on that date (0-23)
+    tm.tm_min = 0;
+    tm.tm_sec = 0;
+    return std::mktime(&tm);
+}
+
+// Backwards-compatible helper
 time_t makeDueDateFromDays(int daysFromNow) {
-    return time(nullptr) + static_cast<time_t>(daysFromNow) * 24 * 60 * 60;
+    return makeDueDateFromDaysHours(daysFromNow, 0);
 }
 
 void printMenu() {
@@ -72,10 +83,15 @@ int main(){
                 int priority = readInt("Task priority (0+): ");
                 int status = readInt("Task status (0=NotStarted, 1=InProgress, 2=Completed): ");
                 int days = readInt("Due in how many days (0=today): ");
+                int hours = readInt("Due at what time (0-23): ");
+                while (hours < 0 || hours > 23) {
+                    cout << "Invalid hours. Enter a value between 0 and 23.\n";
+                    hours = readInt("Due at what time (0-23): ");
+                }
 
                 task->setPriority(priority);
                 task->setStatus(status);
-                task->setDueDate(makeDueDateFromDays(days));
+                task->setDueDate(makeDueDateFromDaysHours(days, hours));
 
                 timeline.addItem(task.get());
                 allTasks.push_back(move(task));
@@ -87,9 +103,14 @@ int main(){
                 project->setDescription(readLine("Project description: "));
                 int priority = readInt("Project priority (0+): ");
                 int days = readInt("Due in how many days (0=today): ");
+                int hours = readInt("Additional hours (0-23): ");
+                while (hours < 0 || hours > 23) {
+                    cout << "Invalid hours. Enter a value between 0 and 23.\n";
+                    hours = readInt("Additional hours (0-23): ");
+                }
 
                 project->setPriority(priority);
-                project->setDueDate(makeDueDateFromDays(days));
+                project->setDueDate(makeDueDateFromDaysHours(days, hours));
 
                 timeline.addItem(project.get());
                 allProjects.push_back(move(project));
