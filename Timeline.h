@@ -2,9 +2,14 @@
 #define TIMELINE_H
 
 #include "ToDoItem.h"
+#include "Task.h"
+#include "Project.h"
 #include <vector>
 #include <algorithm>
 #include <iostream>
+#include <fstream>
+#include <sstream>
+#include <memory>
 
 class Timeline {
     std::vector<ToDoItem*> items;
@@ -60,6 +65,42 @@ public:
     void showAll() const{
         for (auto *it: items){
             std::cout << "----\n" << it->getDetails();
+        }
+    }
+
+    void writeToFile(const std::string& filePath){
+        std::ofstream fs(filePath, std::ios::out);
+        if(!fs.is_open()) throw std::runtime_error("Couldn't open the file: " + filePath);
+        //fs << "Projects" << "\n";
+        for(auto i : this->items) fs << *i << "\n";
+    }
+
+    void readFromFile(const std::string& filePath){
+        std::ifstream fs(filePath, std::ios::in);
+        if(!fs.is_open()) throw std::runtime_error("Couldn't open the file: " + filePath);
+
+        std::string ln;
+        while(std::getline(fs, ln)){
+            if (ln.empty()) continue;
+
+            std::unique_ptr<ToDoItem> item;
+            switch(ln[0]){
+                case 'p': item = std::make_unique<Project>(); break;
+                case 't': item = std::make_unique<Task>(); break;
+                default: throw std::runtime_error("stored item neither project nor task");
+            }
+
+            if (ln.size() < 2 || ln[1] != '|') {
+                throw std::runtime_error("invalid stored item format");
+            }
+
+            std::stringstream ss(ln.substr(2));
+            ss >> *item;
+            if (ss.fail()) {
+                throw std::runtime_error("failed to parse stored item");
+            }
+
+            items.push_back(item.release());
         }
     }
 };

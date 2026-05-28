@@ -7,9 +7,13 @@ class Project;
 
 class Task : public ToDoItem {
     Project *project{nullptr};
+protected:
+    char t{'t'};
 public:
     Task() = default;
     Task(const std::string &n, const std::string &d, int p, time_t due): ToDoItem(n,d,p,due) {}
+
+    char typeTag() const override { return t; }
 
     void setProject(Project *pr) { project = pr; }
     Project* getProject() const { return project; }

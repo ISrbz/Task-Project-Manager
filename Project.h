@@ -8,9 +8,13 @@
 
 class Project : public ToDoItem {
     std::vector<Task> tasks;
+protected:
+    char t{'p'};
 public:
     Project() = default;
     Project(const std::string &n, const std::string &d, int p, time_t due): ToDoItem(n,d,p,due) {}
+
+    char typeTag() const override { return t; }
 
     void addTask(Task t){
         t.setProject(this);

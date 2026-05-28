@@ -27,22 +27,22 @@ time_t makeDueDateFromDays(int daysFromNow) {
 }
 
 void printMenu() {
-    cout << "\n=== Task & Project Manager ===\n";
-    cout << "1. New task\n";
-    cout << "2. New project\n";
-    cout << "3. Add existing task to project\n";
-    cout << "4. Check project status\n";
-    cout << "5. Filter\n";
-    cout << "6. Sort\n";
-    cout << "7. Show all (timeline)\n";
-    cout << "8. Show details by index\n";
-    cout << "9. Change task status\n";
-    cout << "q. Quit\n";
-    cout << "Choice: ";
+    std::cout << "\n=== Task & Project Manager ===\n";
+    std::cout << "1. New task\n";
+    std::cout << "2. New project\n";
+    std::cout << "3. Add existing task to project\n";
+    std::cout << "4. Check project status\n";
+    std::cout << "5. Filter\n";
+    std::cout << "6. Sort\n";
+    std::cout << "7. Show all (timeline)\n";
+    std::cout << "8. Show details by index\n";
+    std::cout << "9. Change task status\n";
+    std::cout << "q. Quit\n";
+    std::cout << "Choice: ";
 }
 
 string readLine(const string &prompt) {
-    cout << prompt;
+    std::cout << prompt;
     string value;
     getline(cin, value);
     return value;
@@ -50,13 +50,13 @@ string readLine(const string &prompt) {
 
 int readInt(const string &prompt) {
     while (true) {
-        cout << prompt;
+        std::cout << prompt;
         string line;
         getline(cin, line);
         stringstream ss(line);
         int value;
         if (ss >> value && ss.eof()) return value;
-        cout << "Invalid number. Try again.\n";
+        std::cout << "Invalid number. Try again.\n";
     }
 }
 
@@ -64,6 +64,7 @@ int main(){
     Timeline timeline;
     vector<unique_ptr<Task>> allTasks;
     vector<unique_ptr<Project>> allProjects;
+    timeline.readFromFile("storage.txt");
 
     while (true) {
         printMenu();
@@ -71,11 +72,12 @@ int main(){
         getline(cin, choice);
 
         if (choice == "q" || choice == "Q") {
-            cout << "Goodbye!\n";
+            std::cout << "Goodbye!\n";
             break;
         }
 
         try {
+            //new task
             if (choice == "1") {
                 auto task = make_unique<Task>();
                 task->setName(readLine("Task name: "));
@@ -85,7 +87,7 @@ int main(){
                 int days = readInt("Due in how many days (0=today): ");
                 int hours = readInt("Due at what time (0-23): ");
                 while (hours < 0 || hours > 23) {
-                    cout << "Invalid hours. Enter a value between 0 and 23.\n";
+                    std::cout << "Invalid hours. Enter a value between 0 and 23.\n";
                     hours = readInt("Due at what time (0-23): ");
                 }
 
@@ -95,8 +97,10 @@ int main(){
 
                 timeline.addItem(task.get());
                 allTasks.push_back(move(task));
-                cout << "Task created and placed on timeline.\n";
+                timeline.writeToFile("storage.txt");
+                std::cout << "Task created and placed on timeline.\n";
             }
+            //new project
             else if (choice == "2") {
                 auto project = make_unique<Project>();
                 project->setName(readLine("Project name: "));
@@ -105,7 +109,7 @@ int main(){
                 int days = readInt("Due in how many days (0=today): ");
                 int hours = readInt("Additional hours (0-23): ");
                 while (hours < 0 || hours > 23) {
-                    cout << "Invalid hours. Enter a value between 0 and 23.\n";
+                    std::cout << "Invalid hours. Enter a value between 0 and 23.\n";
                     hours = readInt("Additional hours (0-23): ");
                 }
 
@@ -114,59 +118,64 @@ int main(){
 
                 timeline.addItem(project.get());
                 allProjects.push_back(move(project));
-                cout << "Project created and placed on timeline.\n";
+                timeline.writeToFile("storage.txt");
+                std::cout << "Project created and placed on timeline.\n";
             }
+            //add task to project
             else if (choice == "3") {
                 if (allTasks.empty() || allProjects.empty()) {
-                    cout << "Need at least one task and one project first.\n";
+                    std::cout << "Need at least one task and one project first.\n";
                     continue;
                 }
 
-                cout << "Tasks:\n";
+                std::cout << "Tasks:\n";
                 for (size_t i = 0; i < allTasks.size(); ++i) {
-                    cout << "[" << i << "] " << allTasks[i]->getName() << "\n";
+                    std::cout << "[" << i << "] " << allTasks[i]->getName() << "\n";
                 }
                 size_t taskIdx = static_cast<size_t>(readInt("Choose task index: "));
 
-                cout << "Projects:\n";
+                std::cout << "Projects:\n";
                 for (size_t i = 0; i < allProjects.size(); ++i) {
-                    cout << "[" << i << "] " << allProjects[i]->getName() << "\n";
+                    std::cout << "[" << i << "] " << allProjects[i]->getName() << "\n";
                 }
                 size_t projIdx = static_cast<size_t>(readInt("Choose project index: "));
 
                 if (taskIdx >= allTasks.size() || projIdx >= allProjects.size()) {
-                    cout << "Invalid index.\n";
+                    std::cout << "Invalid index.\n";
                     continue;
                 }
 
                 allTasks[taskIdx]->setProject(allProjects[projIdx].get());
                 allProjects[projIdx]->addTask(*allTasks[taskIdx]);
-                cout << "Task added to project.\n";
+                timeline.writeToFile("storage.txt");
+                std::cout << "Task added to project.\n";
             }
+            //check project status
             else if (choice == "4") {
                 if (allProjects.empty()) {
-                    cout << "No projects available.\n";
+                    std::cout << "No projects available.\n";
                     continue;
                 }
 
                 for (size_t i = 0; i < allProjects.size(); ++i) {
-                    cout << "[" << i << "] " << allProjects[i]->getName() << "\n";
+                    std::cout << "[" << i << "] " << allProjects[i]->getName() << "\n";
                 }
                 size_t projIdx = static_cast<size_t>(readInt("Choose project index: "));
                 if (projIdx >= allProjects.size()) {
-                    cout << "Invalid index.\n";
+                    std::cout << "Invalid index.\n";
                     continue;
                 }
 
                 allProjects[projIdx]->updateStatusFromTasks();
-                cout << "Project status: " << statusToString(allProjects[projIdx]->getStatus()) << "\n";
+                std::cout << "Project status: " << statusToString(allProjects[projIdx]->getStatus()) << "\n";
             }
+            //filter
             else if (choice == "5") {
-                cout << "Filter by:\n";
-                cout << "1. Priority (>= value)\n";
-                cout << "2. Status\n";
-                cout << "3. Due in next N days\n";
-                cout << "4. Project name (tasks only)\n";
+                std::cout << "Filter by:\n";
+                std::cout << "1. Priority (>= value)\n";
+                std::cout << "2. Status\n";
+                std::cout << "3. Due in next N days\n";
+                std::cout << "4. Project name (tasks only)\n";
                 string f = readLine("Choose filter: ");
 
                 vector<ToDoItem*> filtered;
@@ -189,54 +198,58 @@ int main(){
                         }
                     }
                 } else {
-                    cout << "Invalid filter.\n";
+                    std::cout << "Invalid filter.\n";
                     continue;
                 }
 
-                cout << "Filtered results: " << filtered.size() << "\n";
+                std::cout << "Filtered results: " << filtered.size() << "\n";
                 for (auto *it : filtered) {
-                    cout << "----\n" << it->getDetails();
+                    std::cout << "----\n" << it->getDetails();
                 }
             }
+            //sort
             else if (choice == "6") {
-                cout << "Sort by:\n";
-                cout << "1. Priority\n";
-                cout << "2. Due date\n";
-                cout << "3. Status\n";
+                std::cout << "Sort by:\n";
+                std::cout << "1. Priority\n";
+                std::cout << "2. Due date\n";
+                std::cout << "3. Status\n";
                 string s = readLine("Choose sort: ");
 
                 if (s == "1") timeline.sortByPriorityDesc();
                 else if (s == "2") timeline.sortByDueDateAsc();
                 else if (s == "3") timeline.sortByStatusAsc();
                 else {
-                    cout << "Invalid sort.\n";
+                    std::cout << "Invalid sort.\n";
                     continue;
                 }
 
-                cout << "Sorted timeline:\n";
+                std::cout << "Sorted timeline:\n";
                 timeline.showAll();
             }
+            //show all
             else if (choice == "7") {
                 if (timeline.size() == 0) {
-                    cout << "Timeline is empty.\n";
+                    std::cout << "Timeline is empty.\n";
                     continue;
                 }
                 timeline.showAll();
             }
+            //get details
             else if (choice == "8") {
                 if (timeline.size() == 0) {
-                    cout << "Timeline is empty.\n";
+                    std::cout << "Timeline is empty.\n";
                     continue;
                 }
                 timeline.showIndexed();
                 size_t idx = static_cast<size_t>(readInt("Item index: "));
                 ToDoItem *item = timeline.getItem(idx);
                 if (!item) {
-                    cout << "Invalid index.\n";
+                    std::cout << "Invalid index.\n";
                     continue;
                 }
-                cout << "----\n" << item->getDetails();
+                std::cout << "----\n" << item->getDetails();
             }
+            //change status
             else if (choice == "9") {
                 // list tasks from timeline with compact indices
                 vector<size_t> taskTimelineIndices;
@@ -247,39 +260,40 @@ int main(){
                     }
                 }
                 if (taskTimelineIndices.empty()) {
-                    cout << "No tasks on the timeline.\n";
+                    std::cout << "No tasks on the timeline.\n";
                     continue;
                 }
 
-                cout << "Tasks on timeline:\n";
+                std::cout << "Tasks on timeline:\n";
                 for (size_t idx = 0; idx < taskTimelineIndices.size(); ++idx) {
                     ToDoItem *it = timeline.getItem(taskTimelineIndices[idx]);
-                    cout << "[" << idx << "] " << it->getName() << " (status=" << statusToString(it->getStatus()) << ")\n";
+                    std::cout << "[" << idx << "] " << it->getName() << " (status=" << statusToString(it->getStatus()) << ")\n";
                 }
 
                 size_t pick = static_cast<size_t>(readInt("Choose task number: "));
                 if (pick >= taskTimelineIndices.size()) {
-                    cout << "Invalid choice.\n";
+                    std::cout << "Invalid choice.\n";
                     continue;
                 }
 
                 ToDoItem *chosen = timeline.getItem(taskTimelineIndices[pick]);
                 Task *task = dynamic_cast<Task*>(chosen);
                 if (!task) {
-                    cout << "Selected item is not a task.\n";
+                    std::cout << "Selected item is not a task.\n";
                     continue;
                 }
 
                 int newStatus = readInt("New status (0=NotStarted,1=InProgress,2=Completed): ");
                 task->setStatus(newStatus);
                 if (task->getProject() != nullptr) task->getProject()->updateStatusFromTasks();
-                cout << "Task status updated.\n";
+                timeline.writeToFile("storage.txt");
+                std::cout << "Task status updated.\n";
             }
             else {
-                cout << "Unknown choice.\n";
+                std::cout << "Unknown choice.\n";
             }
         } catch (const exception &ex) {
-            cout << "Error: " << ex.what() << "\n";
+            std::cout << "Error: " << ex.what() << "\n";
         }
     }
 

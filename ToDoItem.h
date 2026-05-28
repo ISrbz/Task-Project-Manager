@@ -10,8 +10,8 @@ enum Status { NotStarted = 0, InProgress = 1, Completed = 2 };
 
 inline std::string statusToString(int status) {
     switch (status) {
-        case NotStarted: return "NotStarted";
-        case InProgress: return "InProgress";
+        case NotStarted: return "Not Started";
+        case InProgress: return "In Progress";
         case Completed: return "Completed";
         default: return "Unknown";
     }
@@ -29,6 +29,8 @@ public:
     ToDoItem(const std::string &n, const std::string &d, int p, time_t due):
         name(n), description(d), priority(p), dueDate(due) {}
     virtual ~ToDoItem() = default;
+
+    virtual char typeTag() const = 0;
 
     const std::string &getName() const { return name; }
     void setName(const std::string &n) {
@@ -88,6 +90,32 @@ public:
     }
 
     virtual std::string getDetails() const = 0;
+
+    friend std::ostream& operator <<(std::ostream& out, const ToDoItem& item){
+        out << item.typeTag() << "|" << item.name << "|" << item.description << "|" << item.priority << "|" << item.status << "|" << item.dueDate;
+        return out;
+    }
+
+    friend std::istream& operator >>(std::istream& in, ToDoItem& item){
+        std::string priorityText;
+        std::string statusText;
+        std::string dueDateText;
+
+        if (!std::getline(in, item.name, '|')) return in;
+        if (!std::getline(in, item.description, '|')) return in;
+        if (!std::getline(in, priorityText, '|')) return in;
+        if (!std::getline(in, statusText, '|')) return in;
+        if (!std::getline(in, dueDateText)) return in;
+
+        try {
+            item.priority = std::stoi(priorityText);
+            item.status = std::stoi(statusText);
+            item.dueDate = static_cast<time_t>(std::stoll(dueDateText));
+        } catch (...) {
+            in.setstate(std::ios::failbit);
+        }
+        return in;
+    }
 };
 
 #endif // TODOITEM_H
