@@ -31,6 +31,7 @@ public:
     virtual ~ToDoItem() = default;
 
     virtual char typeTag() const = 0;
+    virtual void writeExtraFields(std::ostream &out) const = 0;
 
     const std::string &getName() const { return name; }
     void setName(const std::string &n) {
@@ -93,6 +94,7 @@ public:
 
     friend std::ostream& operator <<(std::ostream& out, const ToDoItem& item){
         out << item.typeTag() << "|" << item.name << "|" << item.description << "|" << item.priority << "|" << item.status << "|" << item.dueDate;
+        item.writeExtraFields(out);
         return out;
     }
 

@@ -7,6 +7,7 @@ class Project;
 
 class Task : public ToDoItem {
     Project *project{nullptr};
+    std::string projectName;
 protected:
     char t{'t'};
 public:
@@ -15,8 +16,10 @@ public:
 
     char typeTag() const override { return t; }
 
-    void setProject(Project *pr) { project = pr; }
+    void setProject(Project *pr);
     Project* getProject() const { return project; }
+    const std::string &getProjectName() const { return projectName; }
+    void setProjectName(const std::string &name) { projectName = name; }
 
     void setPriority(int p) override {
         priority = p;
@@ -24,9 +27,16 @@ public:
         if (priority < 0) priority = 0;
     }
 
+    void writeExtraFields(std::ostream &out) const override {
+        out << "|" << projectName;
+    }
+
     std::string getDetails() const override {
         std::ostringstream out;
         out << "Type: Task\n";
+        if (!projectName.empty()) {
+            out << "Project: " << projectName << "\n";
+        }
         out << this->printDetails();
         return out.str();
     }

@@ -72,6 +72,7 @@ int main(){
         getline(cin, choice);
 
         if (choice == "q" || choice == "Q") {
+            timeline.writeToFile("storage.txt");
             std::cout << "Goodbye!\n";
             break;
         }
@@ -94,6 +95,30 @@ int main(){
                 task->setPriority(priority);
                 task->setStatus(status);
                 task->setDueDate(makeDueDateFromDaysHours(days, hours));
+
+                string pr = readLine("Add to project? (Y/n): ");
+                while (pr != "y" && pr != "Y" && pr != "n" && pr != "N"){
+                    pr = readLine("Y/N: ");
+                }
+
+                if (pr == "y" || pr == "Y") {
+                    if (allProjects.empty()) {
+                        std::cout << "Need at least one project first.\n";
+                    } else {
+                        std::cout << "Projects:\n";
+                        for (size_t i = 0; i < allProjects.size(); ++i) {
+                            std::cout << "[" << i << "] " << allProjects[i]->getName() << "\n";
+                        }
+
+                        size_t projIdx = static_cast<size_t>(readInt("Choose project index: "));
+                        if (projIdx >= allProjects.size()) {
+                            std::cout << "Invalid index. Task will be saved without a project.\n";
+                        } else {
+                            allProjects[projIdx]->addTask(*task);
+                            std::cout << "Task added to project.\n";
+                        }
+                    }
+                }
 
                 timeline.addItem(task.get());
                 allTasks.push_back(move(task));
