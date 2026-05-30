@@ -73,7 +73,7 @@ void browseItems(const vector<ToDoItem*> &items, const string &title) {
     while (true) {
         std::cout << title;
         std::cout << "----\n" << items[currentIndex]->getDetails();
-        std::cout << "Item " << currentIndex << " / " << lastIndex << "\n";
+        std::cout << "Item " << (currentIndex+1) << " / " << (lastIndex+1) << "\n";
         std::cout << "Commands: p=previous, n=next, j <index>=jump, e=exit\n";
 
         string command = readLine("Command: ");
@@ -114,8 +114,8 @@ void browseItems(const vector<ToDoItem*> &items, const string &title) {
             std::stringstream ss(jumpText);
             size_t target = 0;
             char extra = '\0';
-            if ((ss >> target) && !(ss >> extra) && target <= lastIndex) {
-                currentIndex = target;
+            if ((ss >> target) && !(ss >> extra) && target >= 1 && target <= (lastIndex + 1)) {
+                currentIndex = (target - 1);
             } else {
                 std::cout << "Invalid jump index.\n";
             }
@@ -171,7 +171,7 @@ int main(){
                 task->setStatus(status);
                 task->setDueDate(makeDueDateFromDaysHours(days, hours));
                 if (!allProjects.empty()) {
-                    string pr = readLine("Add to project? (Y/n): ");
+                    string pr = readLine("Add to project? (Y/N): ");
                     while (pr != "y" && pr != "Y" && pr != "n" && pr != "N"){
                         pr = readLine("Y/N: ");
                     }
