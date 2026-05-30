@@ -3,6 +3,7 @@
 #include <vector>
 #include <memory>
 #include <limits>
+#include <cctype>
 #include <ctime>
 
 #include "ToDoItem.h"
@@ -57,6 +58,71 @@ int readInt(const string &prompt) {
         int value;
         if (ss >> value && ss.eof()) return value;
         std::cout << "Invalid number. Try again.\n";
+    }
+}
+
+void browseItems(const vector<ToDoItem*> &items, const string &title) {
+    if (items.empty()) {
+        std::cout << title << "No items to display.\n";
+        return;
+    }
+
+    size_t currentIndex = 0;
+    const size_t lastIndex = items.size() - 1;
+
+    while (true) {
+        std::cout << title;
+        std::cout << "----\n" << items[currentIndex]->getDetails();
+        std::cout << "Item " << currentIndex << " / " << lastIndex << "\n";
+        std::cout << "Commands: p=previous, n=next, j <index>=jump, e=exit\n";
+
+        string command = readLine("Command: ");
+        if (command.empty()) continue;
+
+        char op = static_cast<char>(std::tolower(static_cast<unsigned char>(command[0])));
+        if (op == 'e') {
+            return;
+        }
+
+        if (op == 'p') {
+            if (currentIndex == 0) {
+                std::cout << "Already at the first item.\n";
+            } else {
+                --currentIndex;
+            }
+            continue;
+        }
+
+        if (op == 'n') {
+            if (currentIndex == lastIndex) {
+                std::cout << "Already at the last item.\n";
+            } else {
+                ++currentIndex;
+            }
+            continue;
+        }
+
+        if (op == 'j') {
+            string jumpText = command.substr(1);
+            size_t start = jumpText.find_first_not_of(" \t");
+            if (start == string::npos) {
+                std::cout << "Enter an index after j.\n";
+                continue;
+            }
+
+            jumpText = jumpText.substr(start);
+            std::stringstream ss(jumpText);
+            size_t target = 0;
+            char extra = '\0';
+            if ((ss >> target) && !(ss >> extra) && target <= lastIndex) {
+                currentIndex = target;
+            } else {
+                std::cout << "Invalid jump index.\n";
+            }
+            continue;
+        }
+
+        std::cout << "Unknown command.\n";
     }
 }
 
@@ -237,10 +303,7 @@ int main(){
                     continue;
                 }
 
-                std::cout << "Filtered results: " << filtered.size() << "\n";
-                for (auto *it : filtered) {
-                    std::cout << "----\n" << it->getDetails();
-                }
+                browseItems(filtered, "Filtered results:\n");
             }
             //sort
             else if (choice == "6") {
@@ -258,8 +321,11 @@ int main(){
                     continue;
                 }
 
-                std::cout << "Sorted timeline:\n";
-                timeline.showAll();
+                vector<ToDoItem*> sortedItems;
+                for (size_t i = 0; i < timeline.size(); ++i) {
+                    sortedItems.push_back(timeline.getItem(i));
+                }
+                browseItems(sortedItems, "Sorted timeline:\n");
             }
             //show all
             else if (choice == "7") {
@@ -267,7 +333,11 @@ int main(){
                     std::cout << "Timeline is empty.\n";
                     continue;
                 }
-                timeline.showAll();
+                vector<ToDoItem*> timelineItems;
+                for (size_t i = 0; i < timeline.size(); ++i) {
+                    timelineItems.push_back(timeline.getItem(i));
+                }
+                browseItems(timelineItems, "Timeline:\n");
             }
             //get details
             else if (choice == "8") {
@@ -275,14 +345,11 @@ int main(){
                     std::cout << "Timeline is empty.\n";
                     continue;
                 }
-                timeline.showIndexed();
-                size_t idx = static_cast<size_t>(readInt("Item index: "));
-                ToDoItem *item = timeline.getItem(idx);
-                if (!item) {
-                    std::cout << "Invalid index.\n";
-                    continue;
+                vector<ToDoItem*> timelineItems;
+                for (size_t i = 0; i < timeline.size(); ++i) {
+                    timelineItems.push_back(timeline.getItem(i));
                 }
-                std::cout << "----\n" << item->getDetails();
+                browseItems(timelineItems, "Item details:\n");
             }
             //change status
             else if (choice == "9") {
