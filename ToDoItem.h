@@ -6,6 +6,15 @@
 #include <stdexcept>
 #include <sstream>
 
+inline const char *ansiReset() { return "\033[0m"; }
+inline const char *ansiBlue() { return "\033[34m"; }
+inline const char *ansiGreen() { return "\033[32m"; }
+inline const char *ansiCyan() { return "\033[36m"; }
+
+inline std::string colorize(const std::string &text, const char *code) {
+    return std::string(code) + text + ansiReset();
+}
+
 enum Status { NotStarted = 0, InProgress = 1, Completed = 2 };
 
 inline std::string statusToString(int status) {

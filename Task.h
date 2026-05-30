@@ -33,9 +33,9 @@ public:
 
     std::string getDetails() const override {
         std::ostringstream out;
-        out << "Type: Task\n";
+        out << "Type: " << colorize("Task", ansiGreen()) << "\n";
         if (!projectName.empty()) {
-            out << "Project: " << projectName << "\n";
+            out << "Project: " << colorize(projectName, ansiCyan()) << "\n";
         }
         out << this->printDetails();
         return out.str();

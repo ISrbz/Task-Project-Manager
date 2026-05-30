@@ -80,7 +80,7 @@ public:
 
     std::string getDetails() const override {
         std::ostringstream out;
-        out << "Type: Project\n";
+        out << "Type: " << colorize("Project", ansiCyan()) << "\n";
         out << "Tasks: " << tasks.size() << "\n";
         out << this->printDetails();
         return out.str();
